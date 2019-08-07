@@ -52,7 +52,7 @@ def get_url_list(data_path, num_limit):
     return url_list
 
 
-def download_images(url_list):
+def download_images(url_list, sleep_flag):
     '''
     args:
         the url list which contains the list of urls
@@ -61,8 +61,8 @@ def download_images(url_list):
     current_path = os.getcwd()
 
     for i, url in enumerate(url_list):
-        sleep(random_sleep_time())
-
+        if sleep_flag:
+            sleep(random_sleep_time())
         pic_name = os.path.split(url)[-1]
         pic_path = os.path.join(current_path, 'images', pic_name)
         with open(pic_path, 'wb') as f:
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     parser.add_argument('--data_path', type=str, default='./data_set_iv.csv',
                         help='path to .csv data set')
     parser.add_argument('--sleep_flag', type=int, default=1,
-                        help='whether to sleep during scraping ( 1: True, 0: False)')
+                        help='whether to sleep during scraping ( 1: True, 0: False, default 1)')
 
     args = parser.parse_args()
 
