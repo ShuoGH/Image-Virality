@@ -6,10 +6,10 @@ This repo is built for the sync between the server and my own laptop.
 
 Files:
 
-- Load\_OriginalDataSet.ipynb: Load the original data set from the previous paper
-- EDA\_data\_csv.ipynb: load the csv file and do the EDA.
-- data_set.py: define the data set of images
-- download_images.py: downloads all the images (`mkdir images` before executing)
+- `Load_OriginalDataSet.ipynb`: Load the original data set from the previous paper
+- `EDA_data_csv.ipynb`: load the csv file and do the EDA.
+- `data_set.py`: define the data set of images
+- `download_images.py`: downloads all the images (`mkdir images` before executing)
 -
 
 
