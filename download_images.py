@@ -37,7 +37,7 @@ def random_sleep_time():
     return sleep_time
 
 
-def get_url_list(data_path, num_limit):
+def get_url_list(data_path, num_limit, start_point):
     '''
     args:
         data_path: the path of the data set
@@ -46,9 +46,10 @@ def get_url_list(data_path, num_limit):
         url_list: pandas.Series
     '''
     if num_limit:
-        url_list = pd.read_csv(data_path)['img_link'][:num_limit]
+        url_list = pd.read_csv(data_path)[
+            'img_link'][start_point: start_point + num_limit]
     else:
-        url_list = pd.read_csv(data_path)['img_link']
+        url_list = pd.read_csv(data_path)['img_link'][start_point:]
     return url_list
 
 
@@ -68,13 +69,16 @@ def download_images(url_list, sleep_flag):
         with open(pic_path, 'wb') as f:
             f.write(requests.get(url, headers=get_random_header()).content)
         print("Downloading {} image, name {}".format(i, pic_name))
+
+    print("Downloaded {} images in total this time.".format(i + 1))
     return
 
 
 def main(args):
 
     url_list = get_url_list(data_path=args.data_path,
-                            num_limit=args.num_images)
+                            num_limit=args.num_images,
+                            start_point=args.start_point)
     download_images(url_list, args.sleep_flag)
     return
 
@@ -89,6 +93,8 @@ if __name__ == "__main__":
                         help='path to .csv data set')
     parser.add_argument('--sleep_flag', type=int, default=1,
                         help='whether to sleep during scraping ( 1: True, 0: False, default 1)')
+    parser.add_argument('--start_point', type=int, default=0,
+                        help='the place download from, which can be used to continue the previous downloading.(int as the index of images)')
 
     args = parser.parse_args()
 

@@ -4,13 +4,20 @@ To record the details of my summer project, to explore the relationship between 
 
 This repo is built for the sync between the server and my own laptop.
 
-Files:
+## Files:
 
 - `Load_OriginalDataSet.ipynb`: Load the original data set from the previous paper
 - `EDA_data_csv.ipynb`: load the csv file and do the EDA.
 - `data_set.py`: define the data set of images
 - `download_images.py`: downloads all the images (`mkdir images` before executing)
 -
+
+## Pipeline
+
+1. download all the images to form the data set.
+2. build image pairs (500 image pairs for the beginning)
+3. build network
+4. train and test the performance 
 
 
 

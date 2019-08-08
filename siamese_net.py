@@ -2,13 +2,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class siamese_net(nn.Module):
+class SiameseNet(nn.Module):
     '''
-    Modify this code to make it real siamese network.
+    Combine the STN and RN into a Siamese network for this experiment.
     '''
 
     def __init__(self):
-        super(Net, self).__init__()
+        super(SiameseNet, self).__init__()
         self.conv1 = nn.Conv2d(3, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
@@ -27,3 +27,30 @@ class siamese_net(nn.Module):
 
 
 net = Net()
+
+
+class RankerNet(nn.Module):
+    '''
+    Adopt th AlexNet for this experiment.
+
+    Further work:
+        Add more models and make them available.
+    '''
+
+    def __init__(self):
+        super(RankerNet, self).__init__()
+
+    def forward(self, x):
+        return x
+
+
+class STN(nn.Module):
+    '''
+    This is a spatial transformer network.
+    '''
+
+    def __init__(self):
+        super(STN, self).__init__()
+
+    def forward(self, x):
+        return x
