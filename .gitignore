@@ -4,3 +4,7 @@ datasets/
 *.csv
 images/
 *.out
+__pycache__
+processed/
+save/
+checkpoints/
