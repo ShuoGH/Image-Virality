@@ -85,7 +85,8 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
             loss.backward()
             optimizer.step()
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch_i, batch_idx * len(data), len(train_loader.dataset),
+                epoch_i, batch_idx *
+                data[0].size()[0], len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
         # ----save the checkpoint ----
         torch.save({
@@ -120,12 +121,12 @@ def test(model, test_loader, device):
 
             # get the prediction results
             pred_prob = torch.squeeze(criterion.get_log_probability(
-                output1, output2))
+                output1, output2)).cpu()
             pred = np.zeros(data[0].size()[0])
             pred[pred_prob.numpy() > 0.5] = 1
 
             result_array = np.zeros(data[0].size()[0])
-            result_array[pred == target.numpy()] = 1
+            result_array[pred == target.cpu().numpy()] = 1
             correct += result_array.sum()
 
         # get the average ranking loss and accuracy
