@@ -66,7 +66,7 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
 
         print('  start from{} checkpoint \n'.format(checkpoint))
         model_checkpoint = torch.load(
-            os.join(PATH, 'checkpoints', '%d_model.pth' % (checkpoint)))
+            os.path.join(PATH, 'checkpoints', '%d_model.pth' % (checkpoint)))
 
         model.load_state_dict(model_checkpoint['model_state_dict'])
         optimizer.load_state_dict(model_checkpoint['optimizer_state_dict'])
