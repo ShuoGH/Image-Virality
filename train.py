@@ -42,7 +42,8 @@ def main(args):
                    'test_dataloader': test_loader}
 
     # ---- initialize the model----
-    model = siamese_net.SiameseNet(model_type=args.model_type).to(device)
+    model = siamese_net.SiameseNet(
+        model_type=args.model_type, device=device).to(device)
 
     train(data_loader, model, args.epochs, BATCH_SIZE,
           device, args.check_point, args.save_dir)
