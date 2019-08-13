@@ -93,7 +93,7 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss,
-        }, os.join(PATH, 'checkpoints', '%d_model.pth' % (epoch_i)))
+        }, os.path.join(PATH, 'checkpoints', '%d_model.pth' % (epoch_i)))
 
         # ---- test after each epoch----
         test_loader = data_loader['test_dataloader']
