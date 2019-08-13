@@ -122,7 +122,7 @@ class Reddit_Img_Pair(data.Dataset):
 
         img_pairs_test, labels_test = self._build_test_pairs()
         # use the tuple to store the image pairs and labels, then save into the processed folder.
-        print('Processing...')
+        print('Processing... building image pairs')
         data_pair_labels = (img_pairs, labels)
         data_pair_labels_test = (img_pairs_test, labels_test)
 

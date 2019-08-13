@@ -1,15 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
 import numpy as np
 import logging
 import os
+import argparse
 
 import siamese_net
 import losses
 import datasets
 
-import pic_transform
 
 PATH = '.'
 CKP_PATH = os.path.join(PATH, 'checkpoints')
@@ -32,16 +33,16 @@ def main(args):
     ]), re_select=True)
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        train_data, batch_size=BATCH_SIZE, shuffle=True)
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_data, batch_size=BATCH_SIZE, shuffle=False)
     data_loader = {'train_dataloader': train_loader,
                    'test_dataloader': test_loader}
 
     # ---- initialize the model----
     model = siamese_net.SiameseNet(model_type=args.model_type).to(device)
 
-    train(data_loader, model, args.epoch, BATCH_SIZE,
+    train(data_loader, model, args.epochs, BATCH_SIZE,
           device, args.check_point, args.save_dir)
 
 
@@ -81,7 +82,7 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
             loss.backward()
             optimizer.step()
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset),
+                epoch_i, batch_idx * len(data), len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
         # ----save the checkpoint ----
         torch.save({
