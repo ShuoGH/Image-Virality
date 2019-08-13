@@ -32,10 +32,11 @@ class LocNet(nn.Module):
         the size of alexnet input is 3*224*224.
     '''
 
-    def __init__(self):
+    def __init__(self, device):
         super(LocNet, self).__init__()
 
         # Spatial transformer localization-network
+        self.device = device
         self.alex_conv = models.alexnet(pretrained=True).features
         self.extra_conv = nn.Conv2d(256, 128, kernel_size=1)
 
@@ -59,6 +60,7 @@ class LocNet(nn.Module):
         xs = self.extra_conv(xs)
         xs = xs.view(-1, 4608)
         theta = self.fc_loc(xs)
+        # print("first theta, {}".format(theta.is_cuda))
 
         # get the theta weights which is the output of localization net
         # reshape the N*3 theta into N*2*3 theta tensor
@@ -66,11 +68,13 @@ class LocNet(nn.Module):
         for i in theta:
             temp = [[i[0], 0, i[1]], [0, i[0], i[2]]]
             theta_list.append(temp)
-        theta = torch.tensor(theta_list
-                             )
+        theta = torch.tensor(theta_list).to(self.device)
+        # print("second theta {}".format(theta.is_cuda))
+
         # used to do the affine transformation
         # the size if x should N*C*H*W
         grid = F.affine_grid(theta, x.size())
+        # print("grid {}".format(grid.is_cuda))
         x = F.grid_sample(x, grid)  # sampler. Could be biinearsampler
         return x
 
@@ -102,9 +106,10 @@ class SiameseBranch(nn.Module):
     The branch without the global image in the ranknet
     '''
 
-    def __init__(self):
+    def __init__(self, device):
         super(SiameseBranch, self).__init__()
-        self.locnet = LocNet()
+        self.device = device
+        self.locnet = LocNet(self.device)
         self.ranknet = RankNet()
         self.final_fc = nn.Linear(4096, 1)
 
@@ -120,9 +125,10 @@ class SiameseCombinedBranch(nn.Module):
     The branch combined the global image
     '''
 
-    def __init__(self):
+    def __init__(self, device):
         super(SiameseCombinedBranch, self).__init__()
-        self.locnet = LocNet()
+        self.device = device
+        self.locnet = LocNet(self.device)
         self.ranknet = RankNet()
         self.final_fc = nn.Linear(8192, 1)
 
@@ -144,15 +150,16 @@ class SiameseNet(nn.Module):
 
     '''
 
-    def __init__(self, model_type=1):
+    def __init__(self, model_type=1, device='cpu'):
         '''
         If combined model, then concanate the global image and local part.
         '''
         super(SiameseNet, self).__init__()
+        self.device = device
         if model_type == 2:
-            self.branch = SiameseCombinedBranch()
+            self.branch = SiameseCombinedBranch(self.device)
         else:
-            self.branch = SiameseBranch()
+            self.branch = SiameseBranch(self.device)
 
     def forward(self, x):
         # return a tuple (v1,v2)
