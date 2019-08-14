@@ -21,6 +21,6 @@ def freeze_pretrained(model):
     Freeze the pretrained alexnet layers. 
     For now, the layers which need to be frozen is the `STN.alex_conv`
     '''
-    for param in model.STN.alex_conv.parameters():
+    for param in model.branch.locnet.alex_conv.parameters():
         param.requires_grad = False
     return model
