@@ -1,6 +1,7 @@
 import torch
 import torch.utils.data as data
 import torchvision
+from torchvision import transforms
 from utils import makedir_exist_ok
 import random
 import os
@@ -59,7 +60,7 @@ class Reddit_Img_Pair(data.Dataset):
         return os.path.join(self.root, 'processed')
 
     def read_origin_csv(self):
-        ori_path = os.path.join(self.root, 'data_set_iv.csv')
+        ori_path = os.path.join(self.root, 'datasets', 'data_set_iv.csv')
         df = pd.read_csv(ori_path)
         return df, df.shape[0]
 
@@ -82,6 +83,10 @@ class Reddit_Img_Pair(data.Dataset):
         img_pair = [img_1, img_2]
         if self.transform is not None:
             img_pair = [self.transform(img) for img in img_pair]
+        else:
+            # if use this, be careful abou the image size (need to be consistent with the conv layers)
+            img_pair = [transforms.functional.to_tensor(
+                img) for img in img_pair]
 
         if self.target_transform is not None:
             label = self.target_transform(label)

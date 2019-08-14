@@ -12,6 +12,7 @@ import argparse
 import siamese_net
 import losses
 import datasets
+import utils
 
 
 PATH = '.'
@@ -46,13 +47,14 @@ def main(args):
         model_type=args.model_type, device=device).to(device)
 
     train(data_loader, model, args.epochs, BATCH_SIZE,
-          device, args.check_point, args.save_dir)
+          device, args.freeze_pretrained, args.check_point, args.save_dir)
 
 
-def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
+def train(data_loader, model, epoch, batch_size, device, freeze_pretrained, checkpoint, save_dir):
     # ---- optimizer and loss function----
     # optimizer = optim.SGD(model.parameters(), lr=0.01)  # can also use Adam
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
+    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate,weight_decay=0.001)
     criterion = losses.PairCrossEntropy(size_average=True)
     # optimizer = optim.Adam(model.parameters(), lr=lr)
 
@@ -74,6 +76,12 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
         loss = model_checkpoint['loss']
 
     model.train()
+
+    # ---- freeze the layers from the pretrained model----
+    if not freeze_pretrained == 0:
+        model = utils.freeze_pretrained(model)
+
+    # ---- train for the epoch----
     for epoch_i in range(epoch_ckp, epoch):
         for batch_idx, (data, target) in enumerate(train_loader):
             data, target = [data_i.to(device)
@@ -146,6 +154,9 @@ if __name__ == "__main__":
                         help='the batch size fo the training, default is 64')
     parser.add_argument('--model_type', type=int, default=1,
                         help='the type of models for training.')
+    parser.add_argument('--freeze_pretrained', type=int, default=0,
+                        help='the flag which indicates whether freeze the pretrained model(like AlexNet) during training.')
+
     parser.add_argument('--device', type=str, default='cpu',
                         help='the device used for training.')
     parser.add_argument('--epochs', type=int, default=30,
@@ -154,6 +165,7 @@ if __name__ == "__main__":
                         help='the initial learning rate.')
     parser.add_argument('--check_point', type=int, default=0,
                         help='the checkpoint of the training, 0 indicates training from scratch.')
+
     parser.add_argument('--save_dir', type=str, default='./save/',
                         help='the dir of the output model.')
     args = parser.parse_args()

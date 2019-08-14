@@ -57,10 +57,14 @@ class LocNet(nn.Module):
         Get the scale and transformation parameter, make affine transformation, sampling.
         '''
         xs = self.alex_conv(x)
+        # print(xs.size())
         xs = self.extra_conv(xs)
+        # print(xs.size())
         xs = xs.view(-1, 4608)
+        # print(xs.size())
         theta = self.fc_loc(xs)
-        # print("first theta, {}".format(theta.is_cuda))
+        # print the size of theta and the value of theta
+        # print(theta.size(), theta)
 
         # get the theta weights which is the output of localization net
         # reshape the N*3 theta into N*2*3 theta tensor
@@ -69,13 +73,14 @@ class LocNet(nn.Module):
             temp = [[i[0], 0, i[1]], [0, i[0], i[2]]]
             theta_list.append(temp)
         theta = torch.tensor(theta_list).to(self.device)
-        # print("second theta {}".format(theta.is_cuda))
+        # print(theta.size())
 
         # used to do the affine transformation
         # the size if x should N*C*H*W
         grid = F.affine_grid(theta, x.size())
-        # print("grid {}".format(grid.is_cuda))
+        # print(grid.size(), grid)
         x = F.grid_sample(x, grid)  # sampler. Could be biinearsampler
+        # print(x.size(), x)
         return x
 
     def forward(self, x):
@@ -136,7 +141,7 @@ class SiameseCombinedBranch(nn.Module):
         xs = self.locnet(x)  # output: 4096
         x1 = self.ranknet(xs)
         x2 = self.ranknet(x)
-        xs = torch.cat((x1, x2))  # it works, and can do the derivation
+        xs = torch.cat((x1, x2), dim=1)  # it works, and can do the derivation
         xs = self.final_fc(xs)
         return xs
 
