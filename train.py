@@ -27,7 +27,7 @@ def main(args):
     train_data = datasets.Reddit_Img_Pair(args.data_path, transform=transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))]), re_select=True)
+        transforms.Normalize((0.1307,), (0.3081,))]), re_select=True, pair_mode=args.pair_mode)
 
     test_data = datasets.Reddit_Img_Pair(args.data_path, train=False, transform=transforms.Compose([
         transforms.Resize((224, 224)),
@@ -154,6 +154,9 @@ if __name__ == "__main__":
                         help='the batch size fo the training, default is 64')
     parser.add_argument('--model_type', type=int, default=1,
                         help='the type of models for training.')
+    parser.add_argument('--pair_mode', type=int, default=1,
+                        help='the type of dataset selected for training. Choose from 1,2,3,4')
+
     parser.add_argument('--freeze_pretrained', type=int, default=0,
                         help='the flag which indicates whether freeze the pretrained model(like AlexNet) during training.')
 
