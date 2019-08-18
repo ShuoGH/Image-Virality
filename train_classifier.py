@@ -41,7 +41,8 @@ def main(args):
                    'test_dataloader': test_loader}
 
     # ----intialize the model and do the freeze if needed----
-    model = classifier_net.cnn_classifier(model_name=args.model, num_classes=5)
+    model = classifier_net.cnn_classifier(
+        model_name=args.model, num_classes=5).to(args.device)
     if args.freeze_features:
         model.freeze()
 

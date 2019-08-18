@@ -61,7 +61,7 @@ def train(data_loader, model, epoch, batch_size, device, freeze_pretrained, chec
     train_loader = data_loader['train_dataloader']
 
     os.makedirs(CKP_PATH, exist_ok=True)
-    os.makedirs(save_dir, exist_ok=True)
+
     # # add the function of checkpoint
     epoch_ckp = 0
     if not checkpoint == 0:
