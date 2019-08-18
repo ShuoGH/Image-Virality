@@ -8,6 +8,7 @@ import os
 import numpy as np
 import pandas as pd
 from PIL import Image
+from sklearn.model_selection import train_test_split
 
 
 class Reddit_Img_Pair(data.Dataset):
@@ -222,4 +223,138 @@ class Reddit_Img_Pair(data.Dataset):
             tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         fmt_str += 'pairing mode: {}'.format(self.pair_mode)
 
+        return fmt_str
+
+
+class Reddit_Images_for_Classification(data.Dataset):
+    '''
+    args:
+        train: True, indicate the training data set, False means the test data
+        transform: the transforms implemented on the images
+        target_transform: for the label
+        re_split: split the data set into training and test file
+        balance: default False, if True, would use downsample to balance the data set.
+    return:
+        the data set (training and testing. 3000+, 1000+. If balance = True, it will only contain 500 images in total)
+    '''
+    imgs_file = 'images'
+    training_file = "classification_training_data.pt"
+    test_file = "classification_test_data.pt"
+
+    def __init__(self, root, train=True, transform=None, target_transform=None, re_split=False, balance=False):
+        self.root = os.path.expanduser(root)
+        self.transform = transform
+        self.target_transform = target_transform
+        self.train = train  # training set or test set
+        self.balance = balance  # indicate whether do the downsampling
+
+        if self.balance:
+            self.training_file = 'balance_' + self.training_file
+            self.test_file = 'balance_' + self.test_file
+
+        # two columns : img_id , abel
+        self.df_subreddit = self.read_classification_data()
+
+        if re_split:
+            self.split_train_test(self.df_subreddit)
+
+        if not self._check_exists():
+            raise RuntimeError('Dataset not found.' +
+                               ' You can use re_select=True to randomly generate the images pairs from the original image folders')
+
+        if self.train:
+            data_file = self.training_file
+        else:
+            data_file = self.test_file
+        # print(data_file)
+        self.data = torch.load(
+            os.path.join(self.processed_folder, data_file))  # according to the flag to load train/test file.
+
+    @property
+    def processed_folder(self):
+        return os.path.join(self.root, 'processed')
+
+    def __len__(self):
+        return self.data.shape[0]
+
+    def read_classification_data(self):
+        data_path = os.path.join(self.root, 'datasets',
+                                 'image4classification.csv')
+        df = pd.read_csv(data_path)
+        return df
+
+    def __getitem__(self, index):
+        # the label is str (pay attention)
+        img_id, img_label = self.data.iloc[index][['img_id', 'label']]
+
+        img_name = str(img_id) + '.jpg'
+        img = Image.open(os.path.join(
+            self.root, self.imgs_file, img_name))
+        if self.transform is not None:
+            img = self.transform(img)
+        else:
+            # if use this, be careful abou the image size (need to be consistent with the conv layers)
+            img = transforms.functional.to_tensor(img)
+
+        if self.target_transform is not None:
+            img_label = self.target_transform(label)
+
+        return img, img_label
+
+    def split_train_test(self, dataframe):
+
+        if self._check_exists():
+            return
+        if self.balance:
+            dataframe = self.balance_dataframe(dataframe)
+        makedir_exist_ok(self.processed_folder)
+
+        train_df, test_df = train_test_split(dataframe, test_size=0.2)
+        with open(os.path.join(self.processed_folder, self.training_file), 'wb') as f:
+            torch.save(train_df, f)
+        with open(os.path.join(self.processed_folder, self.test_file), 'wb') as f:
+            torch.save(test_df, f)
+        print("Split the training and test file successfully! {}".format(
+            "It's the balanced data" if self.balance else ""))
+
+    def balance_dataframe(self, dataframe):
+        '''
+        There are five subreddits in the data set with huge inbalance.
+        To balance the data set, downsample.
+        100 images for each subreddit.
+        '''
+
+        subreddit_dis = [[sub, num] for sub, num in dataframe.groupby(
+            ['label']).count()['subreddit'].items()]  # number of each subreddit
+        dataframe_list = []
+        for sub, num in subreddit_dis:
+            index_sample_i = random.sample(range(num), 100)
+            dataframe_target = dataframe[dataframe['label']
+                                         == sub].iloc[index_sample_i]
+            dataframe_list.append(dataframe_target)
+        datarame_concanate = pd.concat(
+            [i for i in dataframe_list], axis=0, ignore_index=True)
+        return datarame_concanate
+
+    def _check_exists(self):
+        return os.path.exists(os.path.join(self.processed_folder, self.training_file)) and \
+            os.path.exists(os.path.join(self.processed_folder, self.test_file))
+
+    def __repr__(self):
+        '''
+        Show the info of the dataset for the classification task.
+        '''
+        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
+        fmt_str += '    Number of images: {}\n'.format(self.__len__())
+        fmt_str += '    Subreddits: funny, WTF, aww, atheism, gaming \n'
+        tmp = 'train' if self.train is True else 'test'
+        fmt_str += '    Training or Test: {}\n'.format(tmp)
+        fmt_str += '    Balance or not: {}\n'.format(self.balance)
+        fmt_str += '    Root Location: {}\n'.format(self.root)
+        tmp = '    Transforms (if any): '
+        fmt_str += '{0}{1}\n'.format(
+            tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        tmp = '    Target Transforms (if any): '
+        fmt_str += '{0}{1}'.format(
+            tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
         return fmt_str
