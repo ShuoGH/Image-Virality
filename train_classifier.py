@@ -90,7 +90,7 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint):
             # by default, the crossentyopy calculate the average loss of the images
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch_i, batch_idx *
-                BATCH_SIZE, len(train_loader.dataset),
+                batch_size, len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
         # ----save the checkpoint ----
         if epoch_i % 5 == 0:
@@ -125,7 +125,7 @@ def test(model, test_loader, device):
             # get the prediction results
             _, predicted = torch.max(output, 1)
             total += target.size()[0]
-            correct += (predicted == labels).sum().item()
+            correct += (predicted == target).sum().item()
 
         # get the average loss and the accuracy
         test_loss = total_test_loss / (batch_idx + 1)
