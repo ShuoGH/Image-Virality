@@ -6,18 +6,46 @@ This repo is built for the sync between the server and my own laptop.
 
 ## Files:
 
+The jupyter notebooks are basically used for testing demos before building scripts.
+
 - `Load_OriginalDataSet.ipynb`: Load the original data set from the previous paper
-- `EDA_data_csv.ipynb`: load the csv file and do the EDA.
-- `data_set.py`: define the data set of images
-- `download_images.py`: downloads all the images (`mkdir images` before executing)
--
+- `EDA & Build_dataset.ipynb`: do some EDA and build the data sets: image pair for the siamese net, and the image data sets for the classification
+- `Net_Construction.ipynb`: build the Siamese network
+- `Preliminary Training.ipynb`: doing some training
+- `Classification_task.ipynb`: predicting the subreddit of the images
+
+Scripts:
+
+- `classifier_net.py`: the network used for the classification, including the Alexnet, VGG, resnet and densenet.
+- data_set.py`: define the data set of images. There are two datasets defined here:
+  - `Reddit_Img_Pair`: data used for the Siamese Net, return the image pairs
+  - `Reddit_Images_for_Classification`: data for the classification task, use the `torchvision.datasets.MNIST` as the reference
+- `download_images.py`: scripts used for downloading the images from server
+- `feature_extractor.py`: features layers from the CNN models, used for the feature extraction.
+- `losses.py`: define the loss for training the siamese network
+- `siamese_net.py`: define the siamese net
+- `train_classifier.py`
+- `train_siamese.py`
+- `transforms.py`: define some transforms used on the images
+- `utils.py`: some other functions
+- `visualisation.py`: some functions related to image visualisation.
+- `script.sh`: some command for training and testing the models
 
 ## Pipeline
 
+**Classification:**
+
 1. download all the images to form the data set.
-2. build image pairs (500 image pairs for the beginning)
-3. build network
-4. train and test the performance 
+2. Get the images from 5 most popular subreddit and make the data set
+3. Training the classifier to predict the image subreddit
+
+According to the performance, choose the suitable model for the siamese network. Alexnet is chosen due to its small size and low computation resource demand. Its performance is also not bad.
+
+**Siamese Network for predicting the virality:**
+
+1. build image pairs (500 image pairs for the beginning)
+2. build siamese network, combining the Alexnet and Spatial Transformer Network
+3. train and test the performance 
 
 
 
