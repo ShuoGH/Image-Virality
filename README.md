@@ -17,7 +17,7 @@ The jupyter notebooks are basically used for testing demos before building scrip
 Scripts:
 
 - `classifier_net.py`: the network used for the classification, including the Alexnet, VGG, resnet and densenet.
-- data_set.py`: define the data set of images. There are two datasets defined here:
+- `data_set.py`: define the data set of images. There are two datasets defined here:
   - `Reddit_Img_Pair`: data used for the Siamese Net, return the image pairs
   - `Reddit_Images_for_Classification`: data for the classification task, use the `torchvision.datasets.MNIST` as the reference
 - `download_images.py`: scripts used for downloading the images from server
