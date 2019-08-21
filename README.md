@@ -2,7 +2,6 @@
 
 To record the details of my summer project, to explore the relationship between the content of images and their virality.
 
-This repo is built for the sync between the server and my own laptop.
 
 ## Files:
 
