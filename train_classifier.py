@@ -78,9 +78,12 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
         loss = model_checkpoint['loss']
 
     model.train()
+
     train_loss_batch_list = []
     temp_epoch_list = []
     train_loss_list = []
+
+    test_loss_list = []
     test_accuracy_list = []
     # ---- train for the epoch----
     for epoch_i in range(epoch_ckp, epoch):
@@ -114,20 +117,24 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
         # ---- test after each epoch----
         test_loader = data_loader['test_dataloader']
 
-        test_accuracy = test(model, test_loader, device)
+        test_loss, test_accuracy = test(model, test_loader, device)
+        test_loss_list.append(test_loss)
         test_accuracy_list.append(test_accuracy)
 
     # save to ouput file
     x = np.array(train_loss_batch_list)
     y = np.array(train_loss_list)
     z = np.array(test_accuracy_list)
+    k = np.array(test_loss_list)
 
     np.savetxt('./save/train_loss_batch_{}_{}_{}'.format(
         args.model, args.freeze_features, args.pretrained), x)
     np.savetxt('./save/train_loss_epoch_{}_{}_{}'.format(
-        args.model, args.freeze_features, args.pretrained), x)
+        args.model, args.freeze_features, args.pretrained), y)
+    np.savetxt('./save/test_loss_{}_{}_{}'.format(
+        args.model, args.freeze_features, args.pretrained), k)
     np.savetxt('./save/test_accuracy_{}_{}_{}'.format(
-        args.model, args.freeze_features, args.pretrained), x)
+        args.model, args.freeze_features, args.pretrained), z)
 
 
 def test(model, test_loader, device):
@@ -156,7 +163,7 @@ def test(model, test_loader, device):
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'
               .format(test_loss, correct, len(test_loader.dataset),
                       100. * correct / len(test_loader.dataset)))
-    return correct / len(test_loader.dataset)
+    return test_loss, correct / len(test_loader.dataset)
 
 
 if __name__ == "__main__":
