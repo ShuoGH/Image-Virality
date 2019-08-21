@@ -97,10 +97,10 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
                 epoch_i, batch_idx *
                 batch_size, len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
-            train_loss_batch_list.append()
+            train_loss_batch_list.append(loss.item())
             temp_epoch_list.append(loss.item())
 
-        train_loss_list.append(torch.mean(temp_epoch_list))
+        train_loss_list.append(np.mean(temp_epoch_list))
 
         # ----save the checkpoint ----
         if epoch_i % 5 == 0:
@@ -167,8 +167,8 @@ if __name__ == "__main__":
                         help='path of the project, the default is ./ ')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='the batch size fo the training, default is 64')
-    parser.add_argument('--balance_data', type=int, default=1,
-                        help='indicate whether to use the balanced data or not ')
+    parser.add_argument('--balance_data', type=int, default=0,
+                        help='indicate whether to use the balanced data or not. Default: not balance ')
 
     parser.add_argument('--model', type=str, default='vgg',
                         help='the type of model used as the classifier.')
