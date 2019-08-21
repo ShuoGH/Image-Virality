@@ -55,7 +55,7 @@ class ResNet_model(nn.Module):
         '''
         for param in self.model.parameters():
             param.requires_grad = False
-        for param in self.fc.parameters():
+        for param in self.model.fc.parameters():
             param.requires_grad = True
 
 
@@ -76,7 +76,7 @@ class DenseNet_model(nn.Module):
         '''
         for param in self.model.parameters():
             param.requires_grad = False
-        for param in self.classifier.parameters():
+        for param in self.model.classifier.parameters():
             param.requires_grad = True
 
 
