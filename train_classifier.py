@@ -48,10 +48,10 @@ def main(args):
 
     # ----begin the training----
     train(data_loader, model, args.epochs,
-          BATCH_SIZE, args.device, args.check_point)
+          BATCH_SIZE, args.device, args.check_point, args.save_dir)
 
 
-def train(data_loader, model, epoch, batch_size, device, checkpoint):
+def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
 
     # ---- optimizer and loss function----
     # optimizer = optim.SGD(model.parameters(), lr=0.01)  # can also use Adam
@@ -62,6 +62,7 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint):
     train_loader = data_loader['train_dataloader']
 
     os.makedirs(CKP_PATH, exist_ok=True)
+    os.makedirs(save_dir, exist_ok=True)
 
     # # add the function of checkpoint
     epoch_ckp = 0
@@ -77,6 +78,10 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint):
         loss = model_checkpoint['loss']
 
     model.train()
+    train_loss_batch_list = []
+    temp_epoch_list = []
+    train_loss_list = []
+    test_accuracy_list = []
     # ---- train for the epoch----
     for epoch_i in range(epoch_ckp, epoch):
         for batch_idx, (data, target) in enumerate(train_loader):
@@ -92,6 +97,11 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint):
                 epoch_i, batch_idx *
                 batch_size, len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
+            train_loss_batch_list.append()
+            temp_epoch_list.append(loss.item())
+
+        train_loss_list.append(torch.mean(temp_epoch_list))
+
         # ----save the checkpoint ----
         if epoch_i % 5 == 0:
             torch.save({
@@ -103,7 +113,21 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint):
 
         # ---- test after each epoch----
         test_loader = data_loader['test_dataloader']
-        test(model, test_loader, device)
+
+        test_accuracy = test(model, test_loader, device)
+        test_accuracy_list.append(test_accuracy)
+
+    # save to ouput file
+    x = np.array(train_loss_batch_list)
+    y = np.array(train_loss_list)
+    z = np.array(test_accuracy_list)
+
+    np.savetxt('./save/train_loss_batch_{}_{}_{}'.format(
+        args.model, args.freeze_features, args.pretrained), x)
+    np.savetxt('./save/train_loss_epoch_{}_{}_{}'.format(
+        args.model, args.freeze_features, args.pretrained), x)
+    np.savetxt('./save/test_accuracy_{}_{}_{}'.format(
+        args.model, args.freeze_features, args.pretrained), x)
 
 
 def test(model, test_loader, device):
@@ -132,6 +156,7 @@ def test(model, test_loader, device):
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'
               .format(test_loss, correct, len(test_loader.dataset),
                       100. * correct / len(test_loader.dataset)))
+    return correct / len(test_loader.dataset)
 
 
 if __name__ == "__main__":
