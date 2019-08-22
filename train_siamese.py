@@ -43,14 +43,17 @@ def main(args):
                    'test_dataloader': test_loader}
 
     # ---- initialize the model----
+    # the model type: 1 for the normal viral net, 2 for the model combining the global image
+    # Device: avoid the problem of not in the same device
+    # freeze_* flag: whether freeze certain the part of the viral net.
     model = siamese_net.SiameseNet(
-        model_type=args.model_type, device=device).to(device)
+        model_type=args.model_type, device=device, freeze_locnet=args.freeze_locnet, freeze_ranknet=args.freeze_ranknet).to(device)
 
     train(data_loader, model, args.epochs, BATCH_SIZE,
-          device, args.freeze_pretrained, args.check_point, args.save_dir)
+          device, args.check_point, args.save_dir)
 
 
-def train(data_loader, model, epoch, batch_size, device, freeze_pretrained, checkpoint, save_dir):
+def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
     # ---- optimizer and loss function----
     # optimizer = optim.SGD(model.parameters(), lr=0.01)  # can also use Adam
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
@@ -77,9 +80,12 @@ def train(data_loader, model, epoch, batch_size, device, freeze_pretrained, chec
 
     model.train()
 
-    # ---- freeze the layers from the pretrained model----
-    if not freeze_pretrained == 0:
-        model = utils.freeze_pretrained(model)
+    train_loss_batch_list = []
+    temp_epoch_list = []
+    train_loss_list = []
+
+    test_loss_list = []
+    test_accuracy_list = []
 
     # ---- train for the epoch----
     for epoch_i in range(epoch_ckp, epoch):
@@ -96,19 +102,49 @@ def train(data_loader, model, epoch, batch_size, device, freeze_pretrained, chec
                 epoch_i, batch_idx *
                 data[0].size()[0], len(train_loader.dataset),
                 100. * batch_idx / len(train_loader), loss.item()))
-        # ----save the checkpoint ----
-        torch.save({
-            'epoch': epoch_i,
-            'model_state_dict': model.state_dict(),
-            'optimizer_state_dict': optimizer.state_dict(),
-            'loss': loss,
-        }, os.path.join(PATH, 'checkpoints', '%d_model.pth' % (epoch_i)))
+            train_loss_batch_list.append(loss.item())
+            temp_epoch_list.append(loss.item())
+
+        train_loss_list.append(np.mean(temp_epoch_list))
+
+        # # ----save the checkpoint ----
+        # If you don't have that much space, just ignore this part.
+        # if epoch_i % 10 == 0:
+        #     torch.save({
+        #         'epoch': epoch_i,
+        #         'model_state_dict': model.state_dict(),
+        #         'optimizer_state_dict': optimizer.state_dict(),
+        #         'loss': loss,
+        #     }, os.path.join(PATH, 'checkpoints', '%d_model.pth' % (epoch_i)))
 
         # ---- test after each epoch----
         test_loader = data_loader['test_dataloader']
-        test(model, test_loader, device)
+        test_loss, test_accuracy = test(model, test_loader, device)
+        test_loss_list.append(test_loss)
+        test_accuracy_list.append(test_accuracy)
 
-        # save the model
+    # save the model after the training
+    torch.save({
+        'epoch': epoch_i,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss': loss,
+    }, os.path.join(PATH, args.save_dir, 'model_floc{}_frank{}_.pth'.format(args.freeze_locnet, args.freeze_ranknet)))
+
+    # save the records to ouput file
+    x = np.array(train_loss_batch_list)
+    y = np.array(train_loss_list)
+    z = np.array(test_accuracy_list)
+    k = np.array(test_loss_list)
+
+    np.savetxt('./save/train_loss_batch_{}_{}_{}'.format(
+        args.freeze_locnet, args.freeze_ranknet, args.pair_mode), x)
+    np.savetxt('./save/train_loss_epoch_{}_{}_{}'.format(
+        args.freeze_locnet, args.freeze_ranknet, args.pair_mode), y)
+    np.savetxt('./save/test_loss_{}_{}_{}'.format(
+        args.freeze_locnet, args.freeze_ranknet, args.pair_mode), k)
+    np.savetxt('./save/test_accuracy_{}_{}_{}'.format(
+        args.freeze_locnet, args.freeze_ranknet, args.pair_mode), z)
 
 
 def test(model, test_loader, device):
@@ -142,6 +178,7 @@ def test(model, test_loader, device):
         print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'
               .format(test_loss, correct, len(test_loader.dataset),
                       100. * correct / len(test_loader.dataset)))
+    return test_loss, correct / len(test_loader.dataset)
 
 
 if __name__ == "__main__":
@@ -157,19 +194,24 @@ if __name__ == "__main__":
     parser.add_argument('--pair_mode', type=int, default=1,
                         help='the type of dataset selected for training. Choose from 1,2,3,4')
 
-    parser.add_argument('--freeze_pretrained', type=int, default=0,
-                        help='the flag which indicates whether freeze the pretrained model(like AlexNet) during training.')
+    # parser.add_argument('--freeze_pretrained', type=int, default=0,
+    #                     help='the flag which indicates whether freeze the pretrained model(like AlexNet) during training.')
+
+    parser.add_argument('--freeze_locnet', type=int, default=0,
+                        help='flag which indicates whether freeze the pretrained part of the locnet')
+    parser.add_argument('--freeze_ranknet', type=int, default=0,
+                        help='flag which indicates whether freeze the pretrained part of the ranknet')
 
     parser.add_argument('--device', type=str, default='cpu',
                         help='the device used for training.')
-    parser.add_argument('--epochs', type=int, default=30,
+    parser.add_argument('--epochs', type=int, default=50,
                         help='the number of epochs for training')
     parser.add_argument('--learning_rate', type=float, default=0.01,
                         help='the initial learning rate.')
     parser.add_argument('--check_point', type=int, default=0,
                         help='the checkpoint of the training, 0 indicates training from scratch.')
 
-    parser.add_argument('--save_dir', type=str, default='./save/',
+    parser.add_argument('--save_dir', type=str, default='save',
                         help='the dir of the output model.')
     args = parser.parse_args()
 

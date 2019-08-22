@@ -57,14 +57,14 @@ class LocNet(nn.Module):
         Get the scale and transformation parameter, make affine transformation, sampling.
         '''
         xs = self.alex_conv(x)
-        # print(xs.size())
+        # print(xs.size())  # [64, 256, 6, 6]
         xs = self.extra_conv(xs)
-        # print(xs.size())
+        # print(xs.size())  # [64, 128, 6, 6]
         xs = xs.view(-1, 4608)
-        # print(xs.size())
+        # print(xs.size())  # [64, 4608]
         theta = self.fc_loc(xs)
         # print the size of theta and the value of theta
-        # print(theta.size(), theta)
+        # print(theta.size(), theta)[64, 3]
 
         # get the theta weights which is the output of localization net
         # reshape the N*3 theta into N*2*3 theta tensor
@@ -73,7 +73,7 @@ class LocNet(nn.Module):
             temp = [[i[0], 0, i[1]], [0, i[0], i[2]]]
             theta_list.append(temp)
         theta = torch.tensor(theta_list).to(self.device)
-        # print(theta.size())
+        # print(theta.size())  # [64, 2, 3]
 
         # used to do the affine transformation
         # the size if x should N*C*H*W
@@ -155,19 +155,35 @@ class SiameseNet(nn.Module):
 
     '''
 
-    def __init__(self, model_type=1, device='cpu'):
+    def __init__(self, model_type=1, device='cpu', freeze_locnet=False, freeze_ranknet=False):
         '''
         If combined model, then concanate the global image and local part.
         '''
         super(SiameseNet, self).__init__()
         self.device = device
+        self.freeze_locnet_flag = freeze_locnet
+        self.freeze_ranknet_flag = freeze_ranknet
         if model_type == 2:
             self.branch = SiameseCombinedBranch(self.device)
         else:
             self.branch = SiameseBranch(self.device)
+        if self.freeze_locnet_flag:
+            self.freeze_locnet()
+        if self.freeze_ranknet_flag:
+            self.freeze_ranknet()
 
     def forward(self, x):
         # return a tuple (v1,v2)
         x1 = self.branch(x[0])
         x2 = self.branch(x[1])
         return x1, x2
+
+    def freeze_locnet(self):
+        for para in self.branch.locnet.alex_conv.parameters():
+            para.requires_grad = False
+        return
+
+    def freeze_ranknet(self):
+        for para in self.branch.ranknet.rank.features.parameters():
+            para.requires_grad = False
+        return
