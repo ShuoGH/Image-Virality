@@ -55,8 +55,9 @@ def train(data_loader, model, epoch, batch_size, device, checkpoint, save_dir):
 
     # ---- optimizer and loss function----
     # optimizer = optim.SGD(model.parameters(), lr=0.01)  # can also use Adam
-    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
-    # optimizer = optim.Adam(model.parameters(), lr=args.learning_rate,weight_decay=0.001)
+    # optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adam(
+        model.parameters(), lr=args.learning_rate, weight_decay=0.001)
     criterion = nn.CrossEntropyLoss()
 
     train_loader = data_loader['train_dataloader']

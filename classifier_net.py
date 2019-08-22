@@ -82,7 +82,7 @@ class DenseNet_model(nn.Module):
 
 def cnn_classifier(model_name, num_classes=5):
     num_classes = num_classes
-    pretrained_flag = False
+    pretrained_flag = True
     if model_name == 'alexnet':
         return AlexNet_model(num_classes, pretrained_flag)
 
