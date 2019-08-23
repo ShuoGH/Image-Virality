@@ -130,8 +130,7 @@ class SiameseBranch(nn.Module):
         self.model_name = model_name
         self.device = device
         if model_name == 'densenet':
-            self.extra_util_layer = nn.Conv2d(1024, 128, kernel_size=1)
-            self.average_pooling = nn.AdaptiveAvgPool2d((6, 6))
+            self.average_pooling = nn.AdaptiveAvgPool2d((2, 2))
 
         self.locnet = LocNet(self.model_name, self.device)
         self.ranknet = RankNet(self.model_name)
@@ -142,9 +141,7 @@ class SiameseBranch(nn.Module):
         xs = self.ranknet(xs)
         if self.model_name == 'densenet':
             # add the average pooling to make the features output to 4096
-            xs = self.extra_util_layer(xs)
-            # add the view function to make the (64,128,6,6) to (64,4096)
-            xs = self.average_pooling(xs).view(xs.size(0), 128 * 6 * 6)
+            xs = self.average_pooling(xs).view(xs.size(0), 1024 * 2 * 2)
         xs = self.final_fc(xs)
         return xs
 
@@ -159,8 +156,7 @@ class SiameseCombinedBranch(nn.Module):
         self.model_name = model_name
         self.device = device
         if model_name == 'densenet':
-            self.extra_util_layer = nn.Conv2d(1024, 128, kernel_size=1)
-            self.average_pooling = nn.AdaptiveAvgPool2d((6, 6))
+            self.average_pooling = nn.AdaptiveAvgPool2d((2, 2))
 
         self.locnet = LocNet(self.device)
         self.ranknet = RankNet()
@@ -171,15 +167,11 @@ class SiameseCombinedBranch(nn.Module):
         x1 = self.ranknet(xs)
         if self.model_name == 'densenet':
             # add the average pooling to make the features output to 4096
-            x1 = self.extra_util_layer(x1)
-            # add the view function to make the (64,128,6,6) to (64,4096)
-            x1 = self.average_pooling(x1).view(x1.size(0), 128 * 6 * 6)
+            x1 = self.average_pooling(x1).view(x1.size(0), 1024 * 2 * 2)
         x2 = self.ranknet(x)
         if self.model_name == 'densenet':
             # add the average pooling to make the features output to 4096
-            x2 = self.extra_util_layer(x2)
-            # add the view function to make the (64,128,6,6) to (64,4096)
-            x2 = self.average_pooling(x2).view(x2.size(0), 128 * 6 * 6)
+            x2 = self.average_pooling(x2).view(x2.size(0), 1024 * 2 * 2)
 
         xs = torch.cat((x1, x2), dim=1)  # it works, and can do the derivation
         xs = self.final_fc(xs)
