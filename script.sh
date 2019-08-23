@@ -19,10 +19,19 @@ export OMP_NUM_THREADS
 # python train_classifier.py --batch_size 64 --device cuda:0 --model densenet --freeze_features 0 --epochs 50 --check_point 0 
 
 # 2. For siamese network training
-python train_siamese.py --device cuda:0 --freeze_locnet 0 --freeze_ranknet 0 --pair_mode 4 --epochs 50 --check_point 0
+# python train_siamese.py --device cuda:0 --freeze_locnet 0 --freeze_ranknet 0 --pair_mode 4 --epochs 100 --check_point 0
 
-# python train_siamese.py --device cuda:0 --freeze_locnet 1 --freeze_ranknet 1 --pair_mode 4 --epochs 50 --check_point 0
+# python train_siamese.py --device cuda:0 --freeze_locnet 1 --freeze_ranknet 1 --pair_mode 4 --epochs 100 --check_point 0
 
-# python train_siamese.py --device cuda:0 --freeze_locnet 1 --freeze_ranknet 0 --pair_mode 4 --epochs 50 --check_point 0
+# python train_siamese.py --device cuda:0 --freeze_locnet 1 --freeze_ranknet 0 --pair_mode 4 --epochs 100 --check_point 0
 
-# python train_siamese.py --device cuda:0 --freeze_locnet 0 --freeze_ranknet 1 --pair_mode 4 --epochs 50 --check_point 0
+# python train_siamese.py --device cuda:0 --freeze_locnet 0 --freeze_ranknet 1 --pair_mode 4 --epochs 100 --check_point 0
+
+# 3. training the densenet siamese network
+python train_siamese.py --device cuda:0 --model_name densenet --model_type 1 --freeze_locnet 0 --freeze_ranknet 0 --pair_mode 4 --epochs 100 --check_point 0
+
+# python train_siamese.py --device cuda:0 --model_name densenet --model_type 1 --freeze_locnet 1 --freeze_ranknet 1 --pair_mode 4 --epochs 100 --check_point 0
+
+# python train_siamese.py --device cuda:0 --model_name densenet --model_type 1 --freeze_locnet 0 --freeze_ranknet 1 --pair_mode 4 --epochs 100 --check_point 0
+
+# python train_siamese.py --device cuda:0 --model_name densenet --model_type 1 --freeze_locnet 1 --freeze_ranknet 0 --pair_mode 4 --epochs 100 --check_point 0

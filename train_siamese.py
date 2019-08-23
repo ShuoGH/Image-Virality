@@ -47,7 +47,7 @@ def main(args):
     # Device: avoid the problem of not in the same device
     # freeze_* flag: whether freeze certain the part of the viral net.
     model = siamese_net.SiameseNet(
-        model_type=args.model_type, device=device, freeze_locnet=args.freeze_locnet, freeze_ranknet=args.freeze_ranknet).to(device)
+        model_type=args.model_type, model_name=args.model_name, device=device, freeze_locnet=args.freeze_locnet, freeze_ranknet=args.freeze_ranknet).to(device)
 
     train(data_loader, model, args.epochs, BATCH_SIZE,
           device, args.check_point, args.save_dir)
@@ -189,6 +189,9 @@ if __name__ == "__main__":
                         help='path of the project, the default is ./ ')
     parser.add_argument('--batch_size', type=int, default=64,
                         help='the batch size fo the training, default is 64')
+    parser.add_argument('--model_name', type=str, default='alexnet',
+                        help='the base model embedded in the siamese network, alexnet or densenet.')
+
     parser.add_argument('--model_type', type=int, default=1,
                         help='the type of models for training.')
     parser.add_argument('--pair_mode', type=int, default=1,
