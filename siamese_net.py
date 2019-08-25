@@ -70,6 +70,7 @@ class LocNet(nn.Module):
         xs = xs.view(-1, 4608)
         # print(xs.size())  # [64, 4608]
         theta = self.fc_loc(xs)
+        self.theta = theta.detach().numpy()
         # print the size of theta and the value of theta
         # print(theta.size(), theta)[64, 3]
 
@@ -89,6 +90,9 @@ class LocNet(nn.Module):
         x = F.grid_sample(x, grid)  # sampler. Could be biinearsampler
         # print(x.size(), x)
         return x
+
+    def get_theta(self):
+        return self.theta
 
     def forward(self, x):
         # transform the input
